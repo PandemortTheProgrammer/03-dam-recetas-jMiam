@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:recetas_app/models/receta.dart';
+import 'package:recetas_app/screens/detalle_receta_screen.dart';
 import 'package:recetas_app/services/recipe_service.dart';
 import 'package:recetas_app/widgets/receta_card.dart';
 
@@ -30,7 +31,14 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('RecetasApp, Joshua Fernando Miam Santos LIITID41', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+        title: const Text(
+          'RecetasApp, Joshua Fernando Miam Santos LIITID41',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
         backgroundColor: const Color.fromARGB(255, 80, 23, 3),
       ),
       body: FutureBuilder<List<Receta>>(
@@ -68,7 +76,18 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.symmetric(vertical: 8),
             itemCount: recetas.length,
             itemBuilder: (context, index) {
-              return RecetaCard(receta: recetas[index]);
+              return RecetaCard(
+                receta: recetas[index],
+                onTap: () async {
+                  final bool? esFavorita = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          DetalleRecetaScreen(receta: recetas[index]),
+                    ),
+                  );
+                },
+              );
             },
           );
         },
