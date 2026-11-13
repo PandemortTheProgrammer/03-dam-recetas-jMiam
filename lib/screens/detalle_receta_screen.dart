@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:recetas_app/data/resenas_db.dart';
 import 'package:recetas_app/models/receta.dart';
+import 'package:recetas_app/models/resena.dart';
+import 'package:recetas_app/widgets/formulario_resena.dart';
+import 'package:recetas_app/widgets/tarjeta_resena.dart';
 
 class DetalleRecetaScreen extends StatefulWidget {
   final Receta receta;
@@ -10,6 +14,36 @@ class DetalleRecetaScreen extends StatefulWidget {
 }
 
 class _DetalleRecetaScreenState extends State<DetalleRecetaScreen> {
+  List<Resena> _resenas = [];
+  bool _cargandoResenas = true;
+  String? _errorResenas;
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarResenas();
+  }
+
+  Future<void> _cargarResenas() async {
+    try {
+      final resenas = await ResenasDb.instancia.obtenerPorReceta(
+        widget.receta.id,
+      );
+      if (!mounted) return;
+      setState(() {
+        _resenas = resenas;
+        _errorResenas = null;
+        _cargandoResenas = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _errorResenas = 'No se pudieron cargar las reseñas: $error';
+        _cargandoResenas = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final receta = widget.receta;
@@ -79,11 +113,33 @@ class _DetalleRecetaScreenState extends State<DetalleRecetaScreen> {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  Expanded(child: Text(entrada.value))
+                  Expanded(child: Text(entrada.value)),
                 ],
               ),
             ),
           ),
+          const SizedBox(height: 24),
+          const Text(
+            'Reseñas',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          FormularioResena(
+            recetaId: receta.id,
+            onResenaEnviada: _cargarResenas,
+          ),
+          const SizedBox(height: 8),
+          if (_cargandoResenas)
+            const Center(child: CircularProgressIndicator())
+          else if (_errorResenas != null)
+            Text(_errorResenas!)
+          else if (_resenas.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Text('Aún no hay reseñas. ¡Sé la primera persona!'),
+            )
+          else
+            ..._resenas.map((resena) => TarjetaResena(resena: resena)),
         ],
       ),
     );
